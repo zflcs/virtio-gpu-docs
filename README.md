@@ -199,7 +199,20 @@ VM/VF/MIG/vGPU topology。
 区分 corrected/uncorrected ECC、poison、bad pages、GPU/IOMMU fault、
 AER/FLR、VF/MIG 故障域和 workload/collective recovery。
 
-### 1.6 证据与维护
+### 1.6 ARM Xen IOMMU 与 Dom0 直通
+
+[ARM IOMMU 与 Xen Dom0 设备直通](xen-arm/README.md) 从 ARM SMMUv2/v3、
+StreamID、stage-2、P2M 和 IOTLB 出发，对照 Xen 源码解释 Dom0 如何默认拥有
+物理设备、`xen,passthrough` 如何为 DomU 隐藏设备，以及
+`iommu_add_dt_device()`、`iommu_assign_dt_device()`、SMMU attach、MMIO/IRQ
+路由和 P2M 失效的完整处理链。
+
+[ARM SMMU 原理与 Linux/Xen 源码对照](xen-arm/smmu-principles-linux-xen.md)
+单独解释 StreamID、SMR/S2CR/context bank、Stream Table/STE/CD、stage-1/2
+页表、fault、TLB、ATS/PRI/PASID，并逐项比较 Linux IOMMU core、DMA API、
+`io-pgtable` 与 Xen iommu framework、P2M 和 SMMU driver。
+
+### 1.7 证据与维护
 
 [GPU 虚拟化文档证据登记册](EVIDENCE_REGISTER.md) 记录：
 

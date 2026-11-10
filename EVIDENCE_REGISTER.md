@@ -21,6 +21,7 @@
 | 项目 | Commit |
 | --- | --- |
 | Linux | `6b4b543fa18757297ac756a6fe6e64f506b7844a` |
+| Xen | `df8d101a3854725fd3db3c52f074808e6b3cc539` |
 | Mesa | `ec7b2f322abbcd593d600a14afe2d2773512af4e` |
 | virglrenderer | `e0a1caf3b147bb26dfe524dbb85ded1177e7e49e` |
 | QEMU | `d73149283205645625bfa9fe029cfb68e4c4a9ae` |
@@ -382,6 +383,53 @@ MINOR 23
 - [QEMU VFIO 源码跟踪](ai-gpu/qemu-vfio-source-trace.md)
 - [NVIDIA Grace GPU VFIO Variant 源码跟踪](ai-gpu/nvidia-grace-vfio-source-trace.md)
 - [ATS/PASID/PRI/IOMMU SVA 源码跟踪](ai-gpu/ats-pasid-pri-source-trace.md)
+
+### 11.1 ARM Xen SMMU 证据
+
+固定 Xen 源码：
+
+- ARM SMMUv2 官方规范 `IHI 0062 2.0 D.c`（2016-06-30）：
+  <https://support.arm.com/documentation/ihi0062/dc/>
+- Arm SMMUv3 官方规范 `IHI 0070 H.a`（2026-03-06）：
+  <https://support.arm.com/documentation/ihi0070/ha/>
+
+规范版本核验日期：2026-11-10。
+
+- `xen/docs/misc/arm/passthrough.txt`
+- `xen/docs/misc/arm/device-tree/passthrough.txt`
+- `xen/xen/drivers/passthrough/iommu.c`
+- `xen/xen/drivers/passthrough/device_tree.c`
+- `xen/xen/drivers/passthrough/arm/iommu.c`
+- `xen/xen/drivers/passthrough/arm/smmu.c`
+- `xen/xen/drivers/passthrough/arm/smmu-v3.c`
+- `xen/xen/arch/arm/domain_build.c`
+- `xen/xen/arch/arm/mmu/p2m.c`
+
+可证明：
+
+- Xen ARM passthrough 主路径使用 SMMU stage-2；
+- SMMUv2 context bank 和 SMMUv3 STE 使用 domain P2M root；
+- 普通 host 设备默认归 Dom0，`xen,passthrough` 表示从 Dom0 隐藏；
+- `iommu_add_dt_device()`、`iommu_assign_dt_device()`、SMMU attach、
+  MMIO/IRQ 映射和 P2M IOTLB flush 的源码顺序；
+- 当前 Xen SMMUv3 驱动自述为 Tech Preview，只支持 stage-2，ATS/MSI
+  路径不是完整生产支持。
+- SMMUv2 规范定义 SMR/S2CR/context bank、fault 和 stage-1/2 行为；
+- SMMUv3 规范定义 Stream Table/STE/CD、CMDQ/EVTQ/PRIQ、ATS/PRI/PASID
+  和 stage-1/2 翻译结构。
+
+不能直接证明：
+
+- 具体 SoC 的 SMMU、StreamID、IRQ 和 PCIe IORT/DT 配置正确；
+- 某款设备的 ATS/PRI/PASID/SVA 组合可用；
+- Dom0 中真实设备驱动的 DMA mask、地址窗口、cache 属性和 reset 行为；
+- 当前 Xen 是否具备完整 ACPI/IORT SMMU 设备枚举；
+- 直通性能、热插拔、迁移和故障恢复。
+
+文档：
+
+- [ARM IOMMU 与 Xen Dom0 设备直通](xen-arm/README.md)
+- [ARM SMMU 原理与 Linux/Xen 源码对照](xen-arm/smmu-principles-linux-xen.md)
 
 ## 12. MIG/vGPU 证据
 
